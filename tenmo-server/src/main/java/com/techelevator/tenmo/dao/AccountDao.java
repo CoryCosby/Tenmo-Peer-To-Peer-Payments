@@ -3,6 +3,8 @@ package com.techelevator.tenmo.dao;
 import com.techelevator.tenmo.model.Account;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import java.security.Principal;
+
 
 public interface AccountDao {
 
@@ -15,4 +17,6 @@ public interface AccountDao {
    double subtractBalance(double amountToSubtract, int id);
 
    Account getAccountFromUserId(int userId);
+
+  Account getAccountFromUsername(Principal principal);
 }
