@@ -7,6 +7,7 @@ import com.techelevator.tenmo.model.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
 
@@ -22,7 +23,7 @@ public class TransferController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(path = "/transfer", method = RequestMethod.POST)
-    public void makeTransfer(@RequestBody Transfer transfer) {
+    public void makeTransfer(@Valid @RequestBody Transfer transfer) {
         transferDao.makeTransfer(transfer);
     }
 
@@ -35,12 +36,12 @@ public class TransferController {
     }
 
     @RequestMapping(path = "my_transfers/{id}", method = RequestMethod.GET)
-    public Transfer getTransfer(@PathVariable int transferId) {
+    public Transfer getTransfer(@PathVariable ("id") int transferId) {
         Transfer transfer = transferDao.getTransferByTransferId(transferId);
         return transfer;
     }
 
-    @RequestMapping(path = "transfer/complete")
+    @RequestMapping(path = "transfer/complete", method = RequestMethod.PUT)
     public String completeTransfer(@RequestBody Transfer transfer) {
         transferDao.transferFunds(transfer);
         return "Completed";

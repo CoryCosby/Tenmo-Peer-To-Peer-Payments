@@ -32,12 +32,12 @@ public class JdbcTransferDao implements TransferDao{
 
     @Override
     public void transferFunds(Transfer transfer) {
-        Account accountFrom = accountDao.getAccountFromUserId(transfer.getAccountFrom());
-        Account accountTo = accountDao.getAccountFromUserId(transfer.getAccountTo());
-        double balanceFrom = accountDao.getBalanceByUserId(transfer.getAccountFrom());
-        double balanceTo = accountDao.getBalanceByUserId(transfer.getAccountTo());
+        Account accountFrom = accountDao.getAccountFromAccountId(transfer.getAccountFrom());
+        Account accountTo = accountDao.getAccountFromAccountId(transfer.getAccountTo());
+        double balanceFrom = accountDao.getBalanceByUserId(accountFrom.getUserId());
+        double balanceTo = accountDao.getBalanceByUserId(accountFrom.getUserId());
         double transferAmount = transfer.getAmount();
-        if (accountFrom == accountTo) {
+        if (accountFrom.getAccountId() == accountTo.getAccountId()) {
             throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "YOUR TRANSFER CANNOT BE COMPLETED");
         }
         if (transferAmount > balanceFrom || transferAmount <= 0 ) {
@@ -77,14 +77,16 @@ public class JdbcTransferDao implements TransferDao{
     @Override
     public List<Transfer> getTransfersByUserId(int userId) {
         List<Transfer> transfers = new ArrayList<>();
+        Transfer transfer = null;
         String sql = "SELECT t.transfer_id, t.transfer_type_id, t.transfer_status_id, t.account_from, t.account_to, t.amount " +
-                "FROM transfer AS t " +
-                "JOIN account AS a ON a1.account_id = t.account_from " +
-                "WHERE t.account_to = ? OR t.account_from = ?";
+                "FROM transfer t " +
+                "JOIN account  a ON a.account_id = t.account_from OR a.account_id = t.account_to " +
+                "WHERE a.user_id = ?";
 
         SqlRowSet results = jdbcTemplate.queryForRowSet(sql, userId, userId);
         while (results.next()) {
-            transfers.add(mapRowToTransfer(results));
+            transfer = mapRowToTransfer(results);
+            transfers.add(transfer);
         }
         return transfers;
     }

@@ -34,12 +34,12 @@ public class JdbcAccountDao implements AccountDao{
         return balance;
     }
     @Override
-    public double addBalance(double amount, int userId) {
-        Account account = getAccountFromUserId(userId);
+    public double addBalance(double amount, int accountTo) {
+        Account account = getAccountFromAccountId(accountTo);
         double newBalance = account.getBalance() + amount;
-        String sql = "UPDATE accounts SET balance = ? WHERE user_id = ?";
+        String sql = "UPDATE account SET balance = ? WHERE account_id = ?";
         try {
-            jdbcTemplate.update(sql, newBalance, userId);
+            jdbcTemplate.update(sql, newBalance, accountTo);
         } catch (DataAccessException e) {
             System.out.println("Cannot Access");
         }
@@ -47,21 +47,21 @@ public class JdbcAccountDao implements AccountDao{
     }
 
     @Override
-    public double subtractBalance(double amount, int userId) {
-        Account account = getAccountFromUserId(userId);
+    public double subtractBalance(double amount, int accountId) {
+        Account account = getAccountFromAccountId(accountId);
         double newBalance = account.getBalance() - amount;
-        String sql = "UPDATE accounts SET balance = ? WHERE user_id = ?";
+        String sql = "UPDATE account SET balance = ? WHERE account_id = ?";
         try {
-            jdbcTemplate.update(sql, newBalance, userId);
+            jdbcTemplate.update(sql, newBalance, accountId);
         } catch (DataAccessException e) {
             System.out.println("Cannot Access");
         }
         return account.getBalance();
     }
-     public Account getAccountFromUserId(int userId) {
+     public Account getAccountFromAccountId(int accountId) {
         Account account = null;
-        String sql = "SELECT * FROM accounts WHERE account_id = ?";
-        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, userId);
+        String sql = "SELECT account_id, user_id, balance FROM account WHERE account_id = ?";
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId);
         if (results.next()) {
             account = mapRowToAccount(results);
         }

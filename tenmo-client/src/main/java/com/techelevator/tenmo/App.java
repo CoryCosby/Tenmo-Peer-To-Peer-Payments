@@ -6,6 +6,7 @@ import com.techelevator.tenmo.model.UserCredentials;
 import com.techelevator.tenmo.services.AccountService;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.ConsoleService;
+import com.techelevator.tenmo.services.TransferService;
 
 public class App {
 
@@ -15,6 +16,8 @@ public class App {
     private final AuthenticationService authenticationService = new AuthenticationService(API_BASE_URL);
 
     private AuthenticatedUser currentUser;
+    private final TransferService transferService = new TransferService();
+    private final AccountService accountService = new AccountService();
 
     public static void main(String[] args) {
         App app = new App();
@@ -57,6 +60,7 @@ public class App {
     private void handleLogin() {
         UserCredentials credentials = consoleService.promptForCredentials();
         currentUser = authenticationService.login(credentials);
+        transferService.setAuthToken(currentUser.getToken());
         if (currentUser == null) {
             consoleService.printErrorMessage();
         }
@@ -96,18 +100,20 @@ public class App {
 
 	private void viewTransferHistory() {
 		// TODO Auto-generated method stub
-		
+		transferService.getTransferHistory(currentUser);
 	}
 
 	private void viewPendingRequests() {
 		// TODO Auto-generated method stub
-		
-	}
+
+    }
 
 	private void sendBucks() {
 		// TODO Auto-generated method stub
-		
-	}
+       Account account = accountService.getAccount(currentUser);
+        transferService.sendMoney(transferService.createTransfer(transferService.promptForTransferData(account)));
+
+    }
 
 	private void requestBucks() {
 		// TODO Auto-generated method stub
