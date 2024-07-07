@@ -18,6 +18,8 @@ public class Transfer {
     @DecimalMin(value = ".01", message = "you must send a minimum of $0.01")
     private double amount;
 
+
+
     public int getTransferId() {
         return transferId;
     }

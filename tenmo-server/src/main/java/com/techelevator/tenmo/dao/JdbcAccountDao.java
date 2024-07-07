@@ -1,6 +1,7 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.Account;
+import com.techelevator.tenmo.model.User;
 import org.springframework.boot.autoconfigure.quartz.QuartzProperties;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -68,6 +69,17 @@ public class JdbcAccountDao implements AccountDao{
         return account;
     }
 
+    public User getUserFromAccountId(int accountId) {
+        User user = new User();
+        String sql = "SELECT tu.user_id, tu.username FROM tenmo_user tu JOIN account a ON tu.user_id = a.user_id WHERE account_id = ?";
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, accountId);
+        if (results.next()) {
+           user.setId(results.getInt("user_id"));
+           user.setUsername(results.getString("username"));
+        }
+        return user;
+    }
+
     @Override
     public Account getAccountFromUsername(Principal principal){
         Account account = null;
@@ -79,6 +91,19 @@ public class JdbcAccountDao implements AccountDao{
         }
         return account;
     }
+
+    @Override
+    public Account getAccountFromUserId(int userId) {
+        Account account = null;
+        String sql = "SELECT account_id, user_id, balance FROM account WHERE user_id = ?";
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, userId);
+        if (results.next()) {
+            account = mapRowToAccount(results);
+        }
+        return account;
+    }
+
+
     @Override
     public Account mapRowToAccount(SqlRowSet result) {
         Account account = new Account();

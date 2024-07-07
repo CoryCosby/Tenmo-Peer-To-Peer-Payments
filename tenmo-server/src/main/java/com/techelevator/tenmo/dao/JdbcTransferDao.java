@@ -2,6 +2,7 @@ package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.Transfer;
+import com.techelevator.tenmo.model.TransferDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -83,12 +84,43 @@ public class JdbcTransferDao implements TransferDao{
                 "JOIN account  a ON a.account_id = t.account_from OR a.account_id = t.account_to " +
                 "WHERE a.user_id = ?";
 
-        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, userId, userId);
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql, userId);
         while (results.next()) {
             transfer = mapRowToTransfer(results);
             transfers.add(transfer);
         }
         return transfers;
+    }
+    @Override
+    public Transfer processTransfer(TransferDto transferDto){
+
+        String sql = "INSERT INTO transfer (transfer_type_id, transfer_status_id, account_from, account_to, amount) VALUES (?,?,?,?,?);";
+        int transferTypeId = 2;
+        Account accountFrom = accountDao.getAccountFromAccountId(transferDto.getAccountFrom());
+
+        if (transferDto.getAccountFrom() == transferDto.getAccountTo()){
+            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "YOUR TRANSFER CANNOT BE COMPLETED");
+        }
+        if (accountFrom.getBalance() < transferDto.getAmount()){
+            throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,"YOUR TRANSFER CANNOT BE COMPLETED") ;
+        }
+        int transferStatusId = 2;
+
+        jdbcTemplate.update(sql, transferTypeId, transferStatusId, transferDto.getAccountFrom(),
+                            transferDto.getAccountTo(), transferDto.getAmount());
+
+        String sql2 = "SELECT transfer_id, transfer_type_id, transfer_status_id, account_from, account_to, amount " +
+                        " FROM transfer ORDER BY transfer_id DESC LIMIT 1;";
+
+        Transfer transfer = null;
+
+        SqlRowSet results = jdbcTemplate.queryForRowSet(sql2);
+        if(results.next()){
+            transfer = mapRowToTransfer(results);
+        }
+
+
+        return transfer;
     }
 
 

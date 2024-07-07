@@ -1,12 +1,12 @@
 package com.techelevator.tenmo;
 
-import com.techelevator.tenmo.model.Account;
-import com.techelevator.tenmo.model.AuthenticatedUser;
-import com.techelevator.tenmo.model.UserCredentials;
+import com.techelevator.tenmo.model.*;
 import com.techelevator.tenmo.services.AccountService;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.ConsoleService;
 import com.techelevator.tenmo.services.TransferService;
+
+import java.util.Scanner;
 
 public class App {
 
@@ -100,7 +100,19 @@ public class App {
 
 	private void viewTransferHistory() {
 		// TODO Auto-generated method stub
-		transferService.getTransferHistory(currentUser);
+        System.out.println("Please choose an option:");
+        System.out.println("1: view all transfers");
+        System.out.println("2: view a specific transfer");
+        Scanner scanner2 = new Scanner(System.in);
+        int choice = scanner2.nextInt();
+        if( choice == 1) {
+            transferService.getTransferHistory(currentUser);
+        }
+         if (choice == 2){
+            System.out.println("Enter your transfer number,ex 3001");
+            int transferId = scanner2.nextInt();
+            transferService.getTransferById(currentUser, transferId);
+        }
 	}
 
 	private void viewPendingRequests() {
@@ -111,7 +123,14 @@ public class App {
 	private void sendBucks() {
 		// TODO Auto-generated method stub
        Account account = accountService.getAccount(currentUser);
-        transferService.sendMoney(transferService.createTransfer(transferService.promptForTransferData(account)));
+       User[] users =  accountService.getUsers(currentUser);
+        System.out.println("User ID     Name");
+       for(User user: users){
+           System.out.println(user.getId() +"     "+user.getUsername());
+       }
+       Transfer transfer =  transferService.promptForTransferData(account, currentUser);
+       Transfer createdTransfer = transferService.createTransfer(transfer, currentUser);
+        transferService.sendMoney( createdTransfer, currentUser);
 
     }
 

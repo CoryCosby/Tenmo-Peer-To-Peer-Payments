@@ -13,7 +13,9 @@ public class Transfer {
     public Transfer(){
 
     }
-    public Transfer (int accountFrom, int accountTo, double amount){
+    public Transfer (int transferTypeId, int transferStatusId, int accountFrom, int accountTo, double amount){
+        this.transferTypeId = transferTypeId;
+        this.transferStatusId = transferStatusId;
         this.accountFrom = accountFrom;
         this.accountTo = accountTo;
         this.amount = amount;

@@ -1,6 +1,7 @@
 package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.Transfer;
+import com.techelevator.tenmo.model.TransferDto;
 import org.springframework.stereotype.Component;
 
 import java.security.Principal;
@@ -17,5 +18,7 @@ public interface TransferDao {
     List<Transfer> getTransfersByUserId(int userId);
 
     void transferFunds(Transfer transfer);
+
+    Transfer processTransfer(TransferDto transferDto);
 
 }

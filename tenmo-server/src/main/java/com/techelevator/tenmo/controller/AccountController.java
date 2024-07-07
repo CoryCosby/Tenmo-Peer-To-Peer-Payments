@@ -5,6 +5,7 @@ import com.techelevator.tenmo.dao.UserDao;
 import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.User;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -35,12 +36,26 @@ public class AccountController {
         return users;
     }
 
+    @RequestMapping(path = "/account/{id}", method = RequestMethod.GET)
+    public Account accountByUserId(@PathVariable ("id") int userId){
+        Account account = accountDao.getAccountFromUserId(userId);
+        return account;
+    }
+
     @RequestMapping(path = "/account", method = RequestMethod.GET)
     public Account getAccount (Principal principal){
         Account account = accountDao.getAccountFromUsername(principal);
 
         return account;
     }
+
+    @RequestMapping(path = "/account/get/{id}", method = RequestMethod.GET)
+        public User userByAccountId(@PathVariable ("id") int accountId){
+            User user = accountDao.getUserFromAccountId(accountId);
+            return user;
+        }
+
+
 
     @RequestMapping(path = "/checkuser", method = RequestMethod.GET)
     public String getCurrentAccount (Principal principal){
