@@ -49,4 +49,17 @@ public class TransferController {
         transferDao.transferFunds(transfer);
         return "Completed";
     }
+
+    @RequestMapping(path = "/view_pending_requests", method = RequestMethod.GET)
+    public List<Transfer> viewPendingRequests(Principal principal) {
+        List<Transfer> transfers = null;
+        transfers = transferDao.listPendingTransfers(principal.getName());
+
+        return transfers;
+    }
+
+    @RequestMapping(path = "/update_transfer_status", method = RequestMethod.PUT)
+    public void changeTransferStatus(@RequestBody Transfer transfer){
+        transferDao.changeTransferStatus(transfer);
+    }
 }

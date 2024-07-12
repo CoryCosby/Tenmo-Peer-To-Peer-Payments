@@ -21,4 +21,8 @@ public interface TransferDao {
 
     Transfer processTransfer(TransferDto transferDto);
 
+    List<Transfer> listPendingTransfers(String username);
+    void changeTransferStatus(Transfer transfer);
+
+
 }

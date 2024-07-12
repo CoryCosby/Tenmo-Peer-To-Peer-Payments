@@ -122,6 +122,26 @@ public class JdbcTransferDao implements TransferDao{
 
         return transfer;
     }
+@Override
+    public List<Transfer> listPendingTransfers(String username) {
+    List<Transfer> transfers = new ArrayList<>();
+    String sql = "SELECT  transfer_id ,transfer_type_id, transfer_status_id, account_from, account_to, amount  FROM transfer t " +
+            "JOIN account a ON t.account_to = a.account_id OR t.account_from = a.account_id " +
+            "JOIN tenmo_user tu on tu.user_id = a.user_id "+
+            "WHERE username LIKE ? AND transfer_status_id = 1;";
+
+    SqlRowSet results = jdbcTemplate.queryForRowSet(sql, username);
+    while(results.next()){
+        transfers.add(mapRowToTransfer(results));
+    }
+    return transfers;
+}
+
+    @Override
+    public void changeTransferStatus(Transfer transfer) {
+        String sql = "UPDATE transfer SET transfer_status_id = ? WHERE transfer_id = ?;";
+        jdbcTemplate.update(sql, transfer.getTransferStatusId(), transfer.getTransferId());
+    }
 
 
 
