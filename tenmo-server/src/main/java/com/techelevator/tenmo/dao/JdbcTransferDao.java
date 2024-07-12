@@ -104,7 +104,7 @@ public class JdbcTransferDao implements TransferDao{
         if (accountFrom.getBalance() < transferDto.getAmount()){
             throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,"YOUR TRANSFER CANNOT BE COMPLETED") ;
         }
-        int transferStatusId = 2;
+        int transferStatusId = 1;
 
         jdbcTemplate.update(sql, transferTypeId, transferStatusId, transferDto.getAccountFrom(),
                             transferDto.getAccountTo(), transferDto.getAmount());

@@ -55,11 +55,65 @@ public class TransferService {
             }
         }
         System.out.println("Transfer ID     From     To     Amount");
-        System.out.println(transfer.getTransferId() + "            " + sender +"            "+receiver+"          $" + transfer.getAmount());
+        System.out.println(transfer.getTransferId() + "            " + sender +"     "+receiver+"     $" + transfer.getAmount());
 
         return transfer;
     }
+    public Transfer[] getPendingRequests(AuthenticatedUser currentUser) {
+        Transfer[] transfers = null;
+        User[] users = null;
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(currentUser.getToken());
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
 
+            ResponseEntity<Transfer[]> response = restTemplate.exchange(baseurl + "/view_pending_requests",
+                    HttpMethod.GET, entity, Transfer[].class);
+
+            transfers = response.getBody();
+
+            users = accountService.getUsers(currentUser);
+
+        } catch (ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        if (transfers.length == 0) {
+            System.out.println("You have no account activity");
+        } else {
+            System.out.println("Transfer ID       Name       Amount     Transfer Status");
+            for (int i = 0; i < transfers.length; i++) {
+                Account myAccount = accountService.accountByUserId(currentUser, currentUser.getUser().getId());
+                if (transfers[i].getAccountFrom() == myAccount.getAccountId()){
+                    User reciever = accountService.userFromAccountId(currentUser, transfers[i].getAccountTo());
+                    System.out.println(transfers[i].getTransferId() + "            " + reciever.getUsername() +"      "+ transfers[i].getAmount()+"        "+transfers[i].getTransferStatusId());
+                }
+            }
+
+        }
+        return transfers;
+    }
+    public boolean rejectTransfer(AuthenticatedUser currentUser, Transfer transfer) {
+        boolean success = false;
+        transfer.setTransferStatusId(3);
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(currentUser.getToken());
+            HttpEntity<Transfer> entity = new HttpEntity<>(transfer, headers);
+            
+            restTemplate.put(baseurl + "/update_transfer_status", entity);
+
+            success = true;
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            BasicLogger.log(e.getMessage());
+        }
+        if (success) {
+            User user = accountService.userFromAccountId(currentUser, transfer.getAccountTo());
+            User requester = accountService.userFromAccountId(currentUser, transfer.getAccountFrom());
+            System.out.println("You have rejected the request of $" + transfer.getAmount() + " to " +
+                   requester.getUsername());
+        }
+        return success;
+    }
     public Transfer[] getTransferHistory(AuthenticatedUser currentUser) {
         Transfer[] transfers = null;
         User[] users = null;
@@ -90,12 +144,12 @@ public class TransferService {
                     Account myaccount = accountService.accountByUserId(currentUser, currentUser.getUser().getId());
                     if(transfers[i].getAccountTo() == account.getAccountId() && transfers[i].getAccountFrom() == myaccount.getAccountId()){
                        receiver = users[j].getUsername();
-                        System.out.println(transfers[i].getTransferId() + "      from " + receiver +"     $"+ transfers[i].getAmount());
+                        System.out.println(transfers[i].getTransferId() + "           from " + receiver +"     $"+ transfers[i].getAmount());
 
                     }
                     if(transfers[i].getAccountFrom() == account.getAccountId() && transfers[i].getAccountTo() == myaccount.getAccountId()){
                         sender = users[j].getUsername();
-                        System.out.println(transfers[i].getTransferId() + "       to" + sender +"     $" + transfers[i].getAmount());
+                        System.out.println(transfers[i].getTransferId() + "            to " + sender +"     $" + transfers[i].getAmount());
 
                     }
                 }
@@ -129,6 +183,11 @@ public class TransferService {
             restTemplate.put(baseurl + "/transfer/complete",
                     entity);
             success = true;
+            if(success){
+                returnedTransfer.setTransferStatusId(2);
+            }
+            restTemplate.put(baseurl + "/update_transfer_status", entity);
+
         } catch (RestClientResponseException | ResourceAccessException e) {
             BasicLogger.log(e.getMessage());
         }
@@ -184,6 +243,42 @@ public class TransferService {
             }
         }
         return transfer;
+    }
+
+    private Transfer makeRequest(String csv, Account account,AuthenticatedUser currentUser) {
+        Transfer transfer = null;
+        String[] parsed = csv.split(",");
+        if (parsed.length == 2) {
+            try {
+                Account accountFrom = accountService.accountByUserId(currentUser, Integer.parseInt(parsed[0].trim()));
+                transfer = new Transfer();
+                transfer.setAccountFrom(accountFrom.getAccountId());
+                transfer.setAccountTo(account.getAccountId());
+                transfer.setAmount(Double.parseDouble(parsed[1].trim()));
+
+            } catch (NumberFormatException e) {
+                transfer = null;
+            }
+        }
+        return transfer;
+    }
+    public Transfer promptForRequestData(Account account, AuthenticatedUser currentUser) {
+        Transfer newTransfer = null;
+        while (newTransfer == null) {
+            System.out.println("--------------------------------------------");
+            System.out.println("Enter Transfer data as a comma separated list containing:");
+            System.out.println("User To, Amount");
+            System.out.println("Example 1002, 50.00");
+            System.out.println("--------------------------------------------");
+            System.out.println();
+            Scanner scanner = new Scanner(System.in);
+            newTransfer = makeRequest(scanner.nextLine(), account, currentUser);
+            if (newTransfer == null) {
+                System.out.println("Invalid entry. Please try again.");
+            }
+        }
+
+        return newTransfer;
     }
 
 }

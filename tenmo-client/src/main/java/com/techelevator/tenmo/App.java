@@ -117,7 +117,35 @@ public class App {
 
 	private void viewPendingRequests() {
 		// TODO Auto-generated method stub
-
+        int choice=0;
+        Transfer[] transfers = transferService.getPendingRequests(currentUser);
+        while (choice !=1 || choice != 2 || choice !=3 || choice !=4) {
+            System.out.println("Please choose an option:");
+            System.out.println("1: view all pending transfers");
+            System.out.println("2: approve a request");
+            System.out.println("3: reject a request");
+            System.out.println("4: return to main menu");
+            Scanner scanner2 = new Scanner(System.in);
+            choice = scanner2.nextInt();
+            if (choice == 1) {
+                transferService.getPendingRequests(currentUser);
+            }
+            if (choice == 2) {
+                System.out.println("Enter the transfer id you wish to approve: Ex 3001");
+                int id = scanner2.nextInt();
+                Transfer transfer = transferService.getTransferById(currentUser, id);
+                transferService.sendMoney(transfer, currentUser);
+            }
+            if (choice == 3) {
+                System.out.println("Enter the transfer id you wish to reject: Ex 3001");
+                int id = scanner2.nextInt();
+                Transfer transfer = transferService.getTransferById(currentUser, id);
+                transferService.rejectTransfer(currentUser, transfer);
+            }
+            if (choice == 4){
+                break;
+            }
+        }
     }
 
 	private void sendBucks() {
@@ -126,7 +154,7 @@ public class App {
        User[] users =  accountService.getUsers(currentUser);
         System.out.println("User ID     Name");
        for(User user: users){
-           System.out.println(user.getId() +"     "+user.getUsername());
+           System.out.println(user.getId() +"        "+user.getUsername());
        }
        Transfer transfer =  transferService.promptForTransferData(account, currentUser);
        Transfer createdTransfer = transferService.createTransfer(transfer, currentUser);
@@ -136,7 +164,13 @@ public class App {
 
 	private void requestBucks() {
 		// TODO Auto-generated method stub
-		
+        Account account = accountService.getAccount(currentUser);
+        User[] users =  accountService.getUsers(currentUser);
+        System.out.println("User ID     Name");
+        for(User user: users){
+            System.out.println(user.getId() +"     "+user.getUsername());
+        }
+        Transfer transfer =  transferService.promptForRequestData(account, currentUser);
+        Transfer createdTransfer = transferService.createTransfer(transfer, currentUser);
 	}
-
 }
